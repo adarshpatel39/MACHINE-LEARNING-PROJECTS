@@ -1,1 +1,51 @@
+import random
 
+def player(prev_play, opponent_history=[]):
+    if prev_play != "":
+        opponent_history.append(prev_play)
+
+    # First move
+    if len(opponent_history) < 5:
+        return random.choice(["R", "P", "S"])
+
+    # Helper to counter a move
+    def counter(move):
+        return {"R": "P", "P": "S", "S": "R"}[move]
+
+    # -------- STRATEGY 1: Frequency Analysis --------
+    count = {"R": 0, "P": 0, "S": 0}
+    for move in opponent_history:
+        count[move] += 1
+
+    most_common = max(count, key=count.get)
+    freq_guess = counter(most_common)
+
+    # -------- STRATEGY 2: Pattern Matching --------
+    pattern_guess = None
+    if len(opponent_history) >= 5:
+        last_seq = "".join(opponent_history[-4:])
+        sequences = {}
+
+        for i in range(len(opponent_history) - 4):
+            seq = "".join(opponent_history[i:i+4])
+            next_move = opponent_history[i+4]
+
+            if seq == last_seq:
+                if next_move not in sequences:
+                    sequences[next_move] = 0
+                sequences[next_move] += 1
+
+        if sequences:
+            predicted = max(sequences, key=sequences.get)
+            pattern_guess = counter(predicted)
+
+    # -------- STRATEGY 3: Counter Last Move --------
+    last_move_guess = counter(opponent_history[-1])
+
+    # -------- FINAL DECISION --------
+    choices = [freq_guess, last_move_guess]
+
+    if pattern_guess:
+        choices.append(pattern_guess)
+
+    return random.choice(choices)
